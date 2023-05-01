@@ -1,3 +1,5 @@
+local os_name = ...
+
 local cjson = require "cjson"
 cjson.encode_empty_table_as_array(true)
 local vscaux = require "vscaux"
@@ -7,9 +9,10 @@ local skynet = ""
 local config = ""
 local service = ""
 local open_debug = true
+local breakpoints = {}
+local envs = {}
 
 local reqfuncs = {}
-local breakpoints = {}
 
 function reqfuncs.initialize(req)
     vscaux.send_response(req.command, req.seq, {
@@ -75,15 +78,85 @@ function reqfuncs.configurationDone(req)
     vscaux.send_response(req.command, req.seq)
 end
 
+---@param path string
+---@return boolean
+local function is_abspath(path)
+    return path:byte(1, 1) == ("/"):byte() or path:find("^%a:\\")
+end
+
+---@param path string
+---@return string
+local function prune_path(path)
+    local last_byte = path:byte(-1)
+	return (last_byte == ("/"):byte() or last_byte == ("\\"):byte()) and path:sub(1, -2) or path
+end
+
+local function parse_config_envs(cwd, env_config, env_prefix)
+    if not env_config or env_config == "" or not env_prefix or env_prefix == "" then
+        return
+    end
+
+    local winos = os_name == "winos"
+
+    if not is_abspath(env_config) then
+        env_config = cwd .. (winos and "\\" or "/") .. env_config
+    end
+
+    local file, errmsg
+    if winos then
+        file, errmsg = io.popen("@echo off & call " .. env_config .. " & set", 'r')
+    else
+        file, errmsg = io.popen("source " .. env_config .. "; export", 'r')
+    end
+    if file == nil then
+        error(errmsg)
+    end
+    
+    local reg_list = {
+        "^("..env_prefix.."[%w_]+)=\"(.-)\"$",
+        "^export[%s]+("..env_prefix.."[%w_]+)=\"(.-)\"$",
+        "^declare -x[%s]+("..env_prefix.."[%w_]+)=\"(.-)\"$",
+    }
+
+    while true do
+        local line = file:read()
+        if not line then
+            break
+        end
+        for _, reg in ipairs(reg_list) do
+            local _, _, key, value = line:find(reg)
+            if key and value then
+                table.insert(envs, key)
+                table.insert(envs, value)
+                break 
+            end
+        end
+    end
+    file:close()
+end
+
+---@param user_envs string[]|nil
+local function parse_user_envs(user_envs)
+    if user_envs then
+        for _, env in ipairs(user_envs) do
+            local _, _, key, value = env:find("^%s*(.-)%s*=%s*(.-)%s*$")
+            if key and value then
+                table.insert(envs, key)
+                table.insert(envs, value)
+            end
+        end
+    end
+end
+
 function reqfuncs.launch(req)
-	workdir = req.arguments.workdir or "."
-	if workdir:sub(-1) == "/" then
-		workdir = workdir:sub(1, -2)
-	end
+	workdir = prune_path(req.arguments.workdir) or "."
     skynet = req.arguments.program
     config = req.arguments.config
 	service = req.arguments.service
     open_debug = not req.arguments.noDebug
+    parse_config_envs(workdir, req.arguments.envConfig, req.arguments.configEnvPrefix)
+    parse_user_envs(req.arguments.userEnvs)
+
     return true
 end
 
@@ -104,7 +177,7 @@ function handle_request()
 end
 
 if handle_request() then
-    return workdir, skynet, config, service, open_debug, cjson.encode(breakpoints)
+    return workdir, skynet, config, service, open_debug, cjson.encode(breakpoints), envs 
 else
     error("launch error")
 end

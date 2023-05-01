@@ -103,6 +103,21 @@
 								"type": "string",
 								"description": "Set the path of skynet service, the path is relative to workdir",
 								"default": "./service"
+							},
+							"envConfig": {
+								"type": "string",
+								"description": "user environment config file to load",
+								"default": ""
+							},
+							"configEnvPrefix": {
+								"type": "string",
+								"description": "user environment prefix for `envConfig`",
+								"default": ""
+							},
+							"userEnvs": {
+								"type": "array",
+								"description": "user defined environments",
+								"default": []
 							}
 						}
 					}

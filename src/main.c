@@ -1,18 +1,33 @@
-/**
- * skynet debug adpater
- * by colin
- */
+#if defined(_MSC_VER) || defined(_WIN32) || defined(_WIN64) || defined(_WIN32_WCE)
+#define _WIN_PLATFORM
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
+#include <limits.h>
+#ifndef _WIN_PLATFORM 
 #include <signal.h>
+#include <unistd.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#else
+#include <windows.h>
+#endif
+
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+
+#ifndef PATH_MAX
+#ifdef _MAX_PATH
+#define PATH_MAX _MAX_PATH
+#else
+#define PATH_MAX 260
+#endif
+#endif
 
 FILE *logger = NULL;
 
@@ -27,16 +42,10 @@ static void error_exit(const char* format, ...) {
 
 static bool init_debuglog() {
     if (!logger) {
-        logger = fopen("debug.log", "w");
+        logger = freopen("debug.log", "w", stderr);
         if (logger == NULL)
             return false;
         setbuf(logger, NULL);
-
-        // stderr -> logger
-        int fd = fileno(logger);
-        if (dup2(fd, STDERR_FILENO) == -1) {
-            error_exit("dup2: %s", strerror(errno));
-        }
     }
     return true;
 }
@@ -48,24 +57,18 @@ static void debuglog(const char* format, ...) {
     va_end(ap);
 }
 
-static int sigign() {
-	struct sigaction sa;
-	sa.sa_handler = SIG_IGN;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGHUP, &sa, 0);
-	return 0;
-}
-
-static void change_workdir(const char *path) {
-    const char *pos = strrchr(path, '/');
+static void change_workdir(const char *exe_path) {
+#ifndef _WIN_PLATFORM 
+    const char *pos = strrchr(exe_path, '/');
+#else
+    const char *pos = strrchr(exe_path, '\\');
+#endif
     if (pos) {
-        int n = pos - path;
-        char *wdir = malloc(n+1);
-        strncpy(wdir, path, n);
-        wdir[n+1] = '\0';
-        chdir(wdir);
-        free(wdir);
+        char workdir[PATH_MAX];
+        int dirlen = pos - exe_path;
+        strncpy(workdir, exe_path, dirlen);
+        workdir[dirlen] = '\0';
+        chdir(workdir);
     }
 }
 
@@ -79,46 +82,92 @@ static void init_lua_path(lua_State *dL) {
 
     lua_getfield(dL, -1, "cpath");    // [pkg|cpath]
     lua_pushstring(dL, "cpath");     // [pkg|cpath|cpathkey]
-    lua_pushfstring(dL, "./?.so;%s", lua_tostring(dL, -2)); // [pkg|cpath|cpathkey|cpathval]
+    lua_pushfstring(dL, "./?.so;./?.dll;%s", lua_tostring(dL, -2)); // [pkg|cpath|cpathkey|cpathval]
     lua_settable(dL, -4);    // [pkg|path]
     lua_pop(dL, 2); // []
 }
 
 static bool run_script(lua_State *L) {
-    int err = (luaL_loadfile(L, "../debugger.lua") || lua_pcall(L, 0, 6, 0));
-    if (err) {
-        fprintf(logger, "%s\n", lua_tostring(L, -1));
-        return false;
+    if (luaL_loadfile(L, "../debugger.lua") == LUA_OK) {
+#ifdef _WIN_PLATFORM
+        lua_pushstring(L, "winos");
+#elif defined(__APPLE__)
+        lua_pushstring(L, "apple");
+#else
+        lua_pushstring(L, "linux");
+#endif
+        if (lua_pcall(L, 1, -1, 0) == LUA_OK) {
+            return true;
+        }
     }
-    return true;
+    debuglog("%s\n", lua_tostring(L, -1));
+    return false;
 }
 
-static void run_skynet(const char *workdir, const char *skynet, const char *config, const char *service,
-	bool debug, const char *breakpoints) {
-    if (debug)
-        setenv("vscdbg_open", "on", 1);
-    else
-        setenv("vscdbg_open", "off", 1);
-
-    setenv("vscdbg_workdir", workdir, 1);
-    setenv("vscdbg_bps", breakpoints, 1);
-	setenv("vscdbg_service", service, 1);
-
-	debuglog("workdir: %s\n", workdir);
-	debuglog("skynet path: %s\n", skynet);
-	debuglog("config path: %s\n", config);
-	debuglog("service path: %s\n", service);
-
+#ifndef _WIN_PLATFORM
+static void run_skynet(const char *workdir, const char *skynet, const char *config) {
     if (chdir(workdir) != 0) {
 		error_exit("run_skynet - chdir: %s\n", strerror(errno));
 	}
-
     execl(skynet, skynet, config, NULL);
-    error_exit("execl: %s\n", strerror(errno));
+    error_exit("execl error: %s\n", strerror(errno));
 }
 
+static void spawn_child(const char *workdir, const char *skynet, const char *config) {
+    int pid = fork();
+    if (pid == -1) {
+        error_exit("fork error: %s\n", strerror(errno));
+    } else if (pid != 0) {
+        int state;
+        if (wait(&state) == -1)
+            error_exit("wait error: %s\n", strerror(errno));
+        debuglog("child exit: %d\n", state);
+    } else {
+		debuglog("run_skynet pid: %d\n", getpid());
+        run_skynet(workdir, skynet, config);
+    }
+}
+#else
+static void spawn_child(const char *workdir, const char *skynet, const char *config) {
+    STARTUPINFOW startup;
+    PROCESS_INFORMATION info;
+    DWORD process_flags = 0;
+    char* env = NULL;
+    startup.cb = sizeof(startup);
+    startup.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    startup.wShowWindow = SW_HIDE;
+
+    if (!CreateProcessA(NULL,
+                        skynet,
+                        NULL,
+                        NULL,
+                        1,
+                        process_flags,
+                        env,
+                        workdir,
+                        &startup,
+                        &info)) {
+        /* CreateProcess failed. */
+        error_exit("create process error: %d\n", GetLastError()); 
+    }
+    debuglog("run_skynet pid: %d\n", info.dwProcessId);
+    WaitForSingleObject(info.hProcess, INFINITE);
+    CloseHandle(info.hProcess);
+    CloseHandle(info.hThread);
+    debuglog("child exit\n");
+}
+#endif
+
+#ifndef _WIN_PLATFORM
+#define put_env(env_k, env_v) setenv(env_k, env_v, 1)
+#else
+#define put_env(env_k, env_v) _putenv_s(env_k, env_v, 1)
+#endif
+
 int main(int argc, char const *argv[]) {
-    sigign();
+#ifndef _WIN_PLATFORM
+    signal(SIGHUP, SIG_IGN);
+#endif
     if (argc > 0)
         change_workdir(argv[0]);
     if (!init_debuglog())
@@ -131,26 +180,38 @@ int main(int argc, char const *argv[]) {
         error_exit("script error\n");
     }
 
-    const char *workdir = lua_tostring(L, -6);
-	const char *skynet = lua_tostring(L, -5);
-    const char *config = lua_tostring(L, -4);
-	const char *service = lua_tostring(L, -3);
-    bool debug = lua_toboolean(L, -2);
-    const char *breakpoints = lua_tostring(L, -1);
+    //workdir, skynet, config, service, open_debug, breakpoints, envs
+    const char *workdir = lua_tostring(L, 1);
+	const char *skynet = lua_tostring(L, 2);
+    const char *config = lua_tostring(L, 3);
+	const char *service = lua_tostring(L, 4);
+    bool debug = lua_toboolean(L, 5);
+    const char *breakpoints = lua_tostring(L, 6);
 
-    int pid = fork();
-    if (pid == -1) {
-        error_exit("fork: %s\n", strerror(errno));
-    } else if (pid != 0) {
-        int state;
-        if (wait(&state) == -1)
-            error_exit("wait: %s\n", strerror(errno));
-        debuglog("child exit: %d\n", state);
-    } else {
-		debuglog("run_skynet\n");
-        run_skynet(workdir, skynet, config, service, debug, breakpoints);
+    put_env("vscdbg_open", debug ? "on" : "off");
+    put_env("vscdbg_workdir", workdir);
+    put_env("vscdbg_bps", breakpoints);
+	put_env("vscdbg_service", service);
+	debuglog("workdir: %s\n", workdir);
+	debuglog("skynet path: %s\n", skynet);
+	debuglog("config path: %s\n", config);
+	debuglog("service path: %s\n", service);
+
+    const char *env_k, *env_v;
+    int env_sz = luaL_len(L, 7);
+    for (int i = 1; i < env_sz;) {
+        lua_rawgeti(L, 7, i++);
+        lua_rawgeti(L, 7, i++);
+        env_k = lua_tostring(L, -2);
+        env_v = lua_tostring(L, -1);
+        put_env(env_k, env_v);
+        debuglog("user env: %s=%s\n", env_k, env_v);
+        lua_pop(L, 2);
     }
 
+    spawn_child(workdir, skynet, config);
+
     lua_close(L);
+
     return 0;  
 }
