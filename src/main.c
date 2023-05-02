@@ -33,7 +33,7 @@
 #ifndef _WIN_PLATFORM
 #define put_env(env_k, env_v) setenv(env_k, env_v, 1)
 #else
-#define put_env(env_k, env_v) _putenv_s(env_k, env_v, 1)
+#define put_env(env_k, env_v) _putenv_s(env_k, env_v)
 #define chdir _chdir 
 #endif
 
