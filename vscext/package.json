@@ -3,19 +3,19 @@
 	"displayName": "Skynet Debugger",
 	"description": "A Lua debugger for skynet",
 	"version": "1.0.1",
-	"publisher": "colinsusie",
+	"publisher": "socoding",
 	"author": {
-		"name": "colin",
-		"url": "https://github.com/colinsusie"
+		"name": "socoding",
+		"url": "https://github.com/socoding"
 	},
 	"license": "MIT",
 	"icon": "images/icon.png",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/colinsusie/skynetda"
+		"url": "https://github.com/socoding/skynetda"
 	},
 	"bugs": {
-		"url": "https://github.com/colinsusie/skynetda/issues"
+		"url": "https://github.com/socoding/skynetda/issues"
 	},
 	"engines": {
 		"vscode": "^1.41.0"
@@ -67,6 +67,9 @@
 				"osx": {
 					"program": "./bin/macosx/skynetda"
 				},
+				"windows": {
+					"program": "./bin/windows/skynetda.exe"
+				},
 				"initialConfigurations": [
 					{
 						"name": "skynet debugger",
@@ -104,17 +107,17 @@
 								"description": "Set the path of skynet service, the path is relative to workdir",
 								"default": "./service"
 							},
-							"envConfig": {
+							"envFile": {
 								"type": "string",
 								"description": "user environment config file to load",
 								"default": ""
 							},
-							"configEnvPrefix": {
+							"fileEnvPrefix": {
 								"type": "string",
-								"description": "user environment prefix for `envConfig`",
+								"description": "user environment prefix for `envFile`",
 								"default": ""
 							},
-							"userEnvs": {
+							"envs": {
 								"type": "array",
 								"description": "user defined environments",
 								"default": []

@@ -91,22 +91,22 @@ local function prune_path(path)
 	return (last_byte == ("/"):byte() or last_byte == ("\\"):byte()) and path:sub(1, -2) or path
 end
 
-local function parse_config_envs(cwd, env_config, env_prefix)
-    if not env_config or env_config == "" or not env_prefix or env_prefix == "" then
+local function parse_file_envs(cwd, env_file, env_prefix)
+    if not env_file or env_file == "" or not env_prefix or env_prefix == "" then
         return
     end
 
     local winos = os_name == "winos"
 
-    if not is_abspath(env_config) then
-        env_config = cwd .. (winos and "\\" or "/") .. env_config
+    if not is_abspath(env_file) then
+        env_file = cwd .. (winos and "\\" or "/") .. env_file
     end
 
     local file, errmsg
     if winos then
-        file, errmsg = io.popen("@echo off & call " .. env_config .. " & set", 'r')
+        file, errmsg = io.popen("@echo off & call " .. env_file .. " & set", 'r')
     else
-        file, errmsg = io.popen("source " .. env_config .. "; export", 'r')
+        file, errmsg = io.popen("source " .. env_file .. "; export", 'r')
     end
     if file == nil then
         error(errmsg)
@@ -154,8 +154,8 @@ function reqfuncs.launch(req)
     config = req.arguments.config
 	service = req.arguments.service
     open_debug = not req.arguments.noDebug
-    parse_config_envs(workdir, req.arguments.envConfig, req.arguments.configEnvPrefix)
-    parse_user_envs(req.arguments.userEnvs)
+    parse_file_envs(workdir, req.arguments.envFile, req.arguments.fileEnvPrefix)
+    parse_user_envs(req.arguments.envs)
 
     return true
 end
