@@ -27,7 +27,7 @@ ifeq ($(PLAT), mingw)
 BINROOT= vscext/bin/windows
 PROG= $(BINROOT)/skynetda.exe
 LUAT=lua_dll
-LIBS += -L.
+LIBS += -L$(BINROOT)
 else
 BINROOT= vscext/bin/$(PLAT)
 PROG= $(BINROOT)/skynetda
