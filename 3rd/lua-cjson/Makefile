@@ -57,6 +57,9 @@ endif
 #CJSON_CFLAGS =      -DDISABLE_INVALID_NUMBERS
 #CJSON_LDFLAGS =     -shared -L$(PREFIX)/lib -llua51
 #LUA_BIN_SUFFIX =    .lua
+ifeq ($(PLAT), mingw)
+TARGET =            cjson.dll
+endif
 
 ##### Number conversion configuration #####
 

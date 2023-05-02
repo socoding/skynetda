@@ -1,5 +1,5 @@
 PLAT ?= none
-PLATS = linux macosx
+PLATS = linux macosx mingw
 
 .PHONY: $(PLATS) clean cleanall lua cjson
 
@@ -11,8 +11,9 @@ $(PLATS):
 	$(MAKE) all PLAT=$@
 
 CC= gcc
-IPATH= -I3rd/lua/src
-LPATH= -L3rd/lua/src
+LUA_SRC_DIR=3rd/lua/src
+IPATH= -I. -I$(LUA_SRC_DIR)
+LPATH= -L. -L$(LUA_SRC_DIR)
 
 ifeq ($(PLAT), macosx)
 MYFLAGS := -std=gnu99 -O2 -Wall $(IPATH) 
@@ -24,12 +25,22 @@ LIBS= -llua $(LPATH) -ldl -lm
 HEADER = $(wildcard src/*.h)
 SRCS= $(wildcard src/*.c)
 BINROOT= vscext/bin/$(PLAT)
+ifeq ($(PLAT), mingw)
+PROG= $(BINROOT)/skynetda.exe
+LUAT=lua_dll
+else
 PROG= $(BINROOT)/skynetda
+LUAT=lua
+endif
 
-all: lua cjson $(PROG)
+all: $(LUAT) cjson $(PROG)
 	
 lua: 
 	$(MAKE) -C 3rd/lua $(PLAT)
+
+lua_dll:
+	$(MAKE) -C 3rd/lua $(PLAT)
+	cp -f $(LUA_SRC_DIR)/*.dll $(BINROOT)/lua.dll
 
 cjson:
 	$(MAKE) -C 3rd/lua-cjson install PLAT=$(PLAT)
@@ -38,11 +49,11 @@ $(PROG): $(SRCS) $(HEADER)
 	$(CC) $(MYFLAGS) -o $@ $(SRCS) $(LIBS)
 
 clean:
-	rm -f vscext/bin/linux/skynetda
-	rm -f vscext/bin/macosx/skynetda
+	rm -f $(PROG)
 
 cleanall: clean
 	$(MAKE) -C 3rd/lua clean
 	$(MAKE) -C 3rd/lua-cjson clean
-	rm -f vscext/bin/linux/*.so
-	rm -f vscext/bin/macosx/*.so
+	rm -f $(PROG)
+	rm -f $(BINROOT)/*.dll
+	rm -f $(BINROOT)/*.so
