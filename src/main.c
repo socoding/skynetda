@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #else
 #include <windows.h>
+#include <direct.h>
 #endif
 
 #include "lua.h"
@@ -29,7 +30,15 @@
 #endif
 #endif
 
-FILE *logger = NULL;
+#ifndef _WIN_PLATFORM
+#define put_env(env_k, env_v) setenv(env_k, env_v, 1)
+#else
+#define put_env(env_k, env_v) _putenv_s(env_k, env_v, 1)
+#define chdir _chdir 
+#endif
+
+
+static FILE *logger = NULL;
 
 static void error_exit(const char* format, ...) {
     va_list ap;
@@ -64,7 +73,7 @@ static void change_workdir(const char *exe_path) {
     const char *pos = strrchr(exe_path, '\\');
 #endif
     if (pos) {
-        char workdir[PATH_MAX];
+        char workdir[PATH_MAX*2 + 1] = { 0 };
         int dirlen = pos - exe_path;
         strncpy(workdir, exe_path, dirlen);
         workdir[dirlen] = '\0';
@@ -105,15 +114,12 @@ static bool run_script(lua_State *L) {
 }
 
 #ifndef _WIN_PLATFORM
-static void run_skynet(const char *workdir, const char *skynet, const char *config) {
-    if (chdir(workdir) != 0) {
-		error_exit("run_skynet - chdir: %s\n", strerror(errno));
-	}
+static void run_skynet(const char *skynet, const char *config) {
     execl(skynet, skynet, config, NULL);
     error_exit("execl error: %s\n", strerror(errno));
 }
 
-static void spawn_child(const char *workdir, const char *skynet, const char *config) {
+static void spawn_child(const char *skynet, const char *config) {
     int pid = fork();
     if (pid == -1) {
         error_exit("fork error: %s\n", strerror(errno));
@@ -124,27 +130,26 @@ static void spawn_child(const char *workdir, const char *skynet, const char *con
         debuglog("child exit: %d\n", state);
     } else {
 		debuglog("run_skynet pid: %d\n", getpid());
-        run_skynet(workdir, skynet, config);
+        run_skynet(skynet, config);
     }
 }
 #else
-static void spawn_child(const char *workdir, const char *skynet, const char *config) {
+static void spawn_child(const char *skynet, const char *config) {
     STARTUPINFOW startup;
     PROCESS_INFORMATION info;
-    DWORD process_flags = 0;
-    char* env = NULL;
     startup.cb = sizeof(startup);
     startup.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     startup.wShowWindow = SW_HIDE;
-
+    char cmdline[PATH_MAX*2 + 1] = { 0 };
+    sprintf(cmdline, "%s %s", skynet, config);
     if (!CreateProcessA(NULL,
-                        skynet,
+                        cmdline,
                         NULL,
                         NULL,
                         1,
-                        process_flags,
-                        env,
-                        workdir,
+                        0,
+                        NULL,
+                        NULL,
                         &startup,
                         &info)) {
         /* CreateProcess failed. */
@@ -156,12 +161,6 @@ static void spawn_child(const char *workdir, const char *skynet, const char *con
     CloseHandle(info.hThread);
     debuglog("child exit\n");
 }
-#endif
-
-#ifndef _WIN_PLATFORM
-#define put_env(env_k, env_v) setenv(env_k, env_v, 1)
-#else
-#define put_env(env_k, env_v) _putenv_s(env_k, env_v, 1)
 #endif
 
 int main(int argc, char const *argv[]) {
@@ -209,7 +208,11 @@ int main(int argc, char const *argv[]) {
         lua_pop(L, 2);
     }
 
-    spawn_child(workdir, skynet, config);
+    if (chdir(workdir) != 0) {
+		error_exit("chdir failed: %s\n", strerror(errno));
+	}
+
+    spawn_child(skynet, config);
 
     lua_close(L);
 
