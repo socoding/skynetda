@@ -60,4 +60,4 @@ cleanall: clean
 	rm -f vscext/bin/{linux,macosx}/skynetda
 	rm -f vscext/bin/windows/skynetda.exe
 	rm -f vscext/bin/{linux,macosx}/*.so
-	rm -f vscext/bin/windows/*.so	
+	rm -f vscext/bin/windows/*.dll
