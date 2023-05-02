@@ -20,11 +20,12 @@ CJSON_CFLAGS =      -std=gnu99 -fPIC
 CJSON_LDFLAGS =     -shared
 DESTDIR= .
 LUA_INCLUDE_DIR = ../lua/src
-LUA_LIB_DIR = ../lua/src
 ifeq ($(PLAT), mingw)
 INSTALL_DIR=$(PREFIX)/windows
+LUA_LIB_DIR = ../../vscext/bin/windows
 else
 INSTALL_DIR=$(PREFIX)/$(PLAT)
+LUA_LIB_DIR = ../../vscext/bin/$(PLAT)
 endif
 LUA_CMODULE_DIR = $(INSTALL_DIR)
 LUA_MODULE_DIR = $(INSTALL_DIR)
