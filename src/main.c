@@ -135,7 +135,7 @@ static void spawn_child(const char *skynet, const char *config) {
 }
 #else
 static void spawn_child(const char *skynet, const char *config) {
-    STARTUPINFOW startup;
+    STARTUPINFO startup;
     PROCESS_INFORMATION info;
     startup.cb = sizeof(startup);
     startup.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
