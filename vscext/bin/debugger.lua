@@ -1,4 +1,4 @@
-local os_name = ...
+local platform = ...
 
 local cjson = require "cjson"
 cjson.encode_empty_table_as_array(true)
@@ -96,7 +96,7 @@ local function parse_file_envs(cwd, env_file, env_prefix)
         return
     end
 
-    local winos = os_name == "winos"
+    local winos = platform == "windows"
 
     if not is_abspath(env_file) then
         env_file = cwd .. (winos and "\\" or "/") .. env_file
