@@ -19,10 +19,16 @@ CFLAGS =            -O3 -Wall -pedantic -DNDEBUG
 CJSON_CFLAGS =      -std=gnu99 -fPIC
 CJSON_LDFLAGS =     -shared
 DESTDIR= .
-LUA_INCLUDE_DIR =   ../lua/src
-LUA_CMODULE_DIR =   $(PREFIX)/$(PLAT)
-LUA_MODULE_DIR =    $(PREFIX)/$(PLAT)
-LUA_BIN_DIR =       $(PREFIX)/$(PLAT)
+LUA_INCLUDE_DIR = ../lua/src
+LUA_LIB_DIR = ../lua/src
+ifeq ($(PLAT), mingw)
+INSTALL_DIR=$(PREFIX)/windows
+else
+INSTALL_DIR=$(PREFIX)/$(PLAT)
+endif
+LUA_CMODULE_DIR = $(INSTALL_DIR)
+LUA_MODULE_DIR = $(INSTALL_DIR)
+LUA_BIN_DIR = $(INSTALL_DIR)
 
 CC= gcc
 AR= gcc -o
@@ -58,7 +64,9 @@ endif
 #CJSON_LDFLAGS =     -shared -L$(PREFIX)/lib -llua51
 #LUA_BIN_SUFFIX =    .lua
 ifeq ($(PLAT), mingw)
-TARGET =            cjson.dll
+TARGET        =     cjson.dll
+CJSON_CFLAGS  =     -DDISABLE_INVALID_NUMBERS
+CJSON_LDFLAGS =     -shared -L$(LUA_LIB_DIR) -llua
 endif
 
 ##### Number conversion configuration #####
