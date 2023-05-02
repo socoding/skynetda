@@ -2,7 +2,7 @@ Skynet 调试器
 
 ## 屏幕快照
 
-![sn1.png](https://github.com/colinsusie/skynetda/raw/master/vscext/images/sn1.png)
+![sn1.png](https://github.com/socoding/skynetda/raw/master/vscext/images/sn1.png)
 
 ## 功能特性
 
@@ -22,6 +22,6 @@ Skynet 调试器
 
 ## 使用指南
 
-请移步这里阅读：[https://github.com/colinsusie/skynetda](https://github.com/colinsusie/skynetda)
+请移步这里阅读：[https://github.com/socoding/skynetda](https://github.com/socoding/skynetda)
 
 **Enjoy!**

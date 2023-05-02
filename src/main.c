@@ -99,9 +99,9 @@ static void init_lua_path(lua_State *dL) {
 static bool run_script(lua_State *L) {
     if (luaL_loadfile(L, "../debugger.lua") == LUA_OK) {
 #ifdef _WIN_PLATFORM
-        lua_pushstring(L, "winos");
+        lua_pushstring(L, "windows");
 #elif defined(__APPLE__)
-        lua_pushstring(L, "apple");
+        lua_pushstring(L, "osx");
 #else
         lua_pushstring(L, "linux");
 #endif

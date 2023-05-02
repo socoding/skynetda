@@ -4,19 +4,11 @@
 
 最新版的插件增加了工作目录(workdir)的设置，需要配合最新的skynet版本，请看下面的详细说明。
 
-如果有用 skynet debugger 1.0.0 版的，升级到 skynet debugger 1.0.1 之后可能无法调试，需作如下处理：
-
-- 升级到最新的[skynet](https://github.com/colinsusie/skynet)
-- 把原工程的 launch.json 删除掉，重新在 VSCode 下创建launch.json，并设置相关的路径。
-
 ## 构建skynet
 
 要想支持调试功能，你必须使用这个skynet版本：
 
-[https://github.com/colinsusie/skynet](https://github.com/colinsusie/skynet)
-
-这个版本和[官方的版本](https://github.com/cloudwu/skynet)完全一致，并且会一直合并最新的修改；由于skynet极其精简的内核，所以实现这个调试器并没有修改框架的代码，只是增加了几个额外的模块。skynet的构建方法请看[WIKI](https://github.com/cloudwu/skynet/wiki/Build)。
-
+[https://github.com/socoding/skynet](https://github.com/socoding/skynet)
 
 ## 安装扩展
 
@@ -26,12 +18,12 @@
 
 其他平台先试试是否可以调试，如果不能则需要自己重新构建插件的执行程序：
 
-- 克隆代码：`git clone https://github.com/colinsusie/skynetda.git`
+- 克隆代码：`git clone https://github.com/socoding/skynetda.git`
 - 构建：`cd skynetda; make linux`
 - 完成之后在`vscext/bin/linux`中有`skynetda`和`cjson.so`两个文件,需要将这两个文件拷贝到插件的安装目录去：
-    - 如果是SSH远程服务器，插件目录应该在：`~/.vscode-server/extensions/colinsusie.skynet-debugger-x.x.x/bin/linux/`
-    - 如果是本地Linux，则应该在：`~/.vscode/extensions/colinsusie.skynet-debugger-x.x.x/bin/linux/`
-	- 如果是MacOS，则应该是：`~/.vscode/extensions/colinsusie.skynet-debugger-x.x.x/bin/macosx/`
+    - 如果是SSH远程服务器，插件目录应该在：`~/.vscode-server/extensions/socoding.skynet-debugger-x.x.x/bin/linux/`
+    - 如果是本地Linux，则应该在：`~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/linux/`
+	- 如果是MacOS，则应该是：`~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/macosx/`
     - 上面的x.x.x替换为具体的版本号
 
 ## 配置launch.json
@@ -90,9 +82,9 @@ cpath = root.."cservice/?.so"
 
 如果F5之后没有成功调试，你可以CD到插件目录，比如：
 
-- `~/.vscode-server/extensions/colinsusie.skynet-debugger-x.x.x/bin/linux/` 或
-- `~/.vscode/extensions/colinsusie.skynet-debugger-x.x.x/bin/linux/`或
-- `~/.vscode/extensions/colinsusie.skynet-debugger-x.x.x/bin/macosx/`
+- `~/.vscode-server/extensions/socoding.skynet-debugger-x.x.x/bin/linux/` 或
+- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/linux/`或
+- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/macosx/`
 
 里面有一个debug.log文件，查看里面的文件，查找错误原因。
 

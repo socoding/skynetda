@@ -89,7 +89,7 @@
 						"properties": {
 							"workdir": {
 								"type": "string",
-								"description": "Set the work directory",
+								"description": "Set the current working directory",
 								"default": "${workspaceFolder}"
 							},
 							"program": {
