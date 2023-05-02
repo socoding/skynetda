@@ -67,7 +67,7 @@ endif
 ifeq ($(PLAT), mingw)
 TARGET        =     cjson.dll
 CJSON_CFLAGS  =     -DDISABLE_INVALID_NUMBERS
-CJSON_LDFLAGS =     -shared -L$(LUA_LIB_DIR) -llua
+CJSON_LDFLAGS =     -shared -L$(LUA_LIB_DIR) -llua53
 endif
 
 ##### Number conversion configuration #####

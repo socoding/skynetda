@@ -22,17 +22,16 @@ endif
 
 HEADER = $(wildcard src/*.h)
 SRCS= $(wildcard src/*.c)
-LIBS= -llua -ldl -lm
 ifeq ($(PLAT), mingw)
 BINROOT= vscext/bin/windows
 PROG= $(BINROOT)/skynetda.exe
 LUAT=lua_dll
-LIBS += -L$(BINROOT)
+LIBS= -llua53 -ldl -lm -L$(BINROOT)
 else
 BINROOT= vscext/bin/$(PLAT)
 PROG= $(BINROOT)/skynetda
 LUAT=lua
-LIBS += -L$(LUA_SRC_DIR)
+LIBS= -llua -ldl -lm -L$(LUA_SRC_DIR)
 endif
 
 all: $(LUAT) cjson $(PROG)
@@ -42,7 +41,7 @@ lua:
 
 lua_dll:
 	$(MAKE) -C 3rd/lua $(PLAT)
-	install -p -D $(LUA_SRC_DIR)/*.dll $(BINROOT)/lua.dll
+	install -p -D $(LUA_SRC_DIR)/lua53.dll $(BINROOT)/lua53.dll
 
 cjson:
 	$(MAKE) -C 3rd/lua-cjson install PLAT=$(PLAT)
