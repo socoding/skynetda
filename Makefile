@@ -13,7 +13,6 @@ $(PLATS):
 CC= gcc
 LUA_SRC_DIR=3rd/lua/src
 IPATH= -I. -I$(LUA_SRC_DIR)
-LPATH= -L. -L$(LUA_SRC_DIR)
 
 ifeq ($(PLAT), macosx)
 MYFLAGS := -std=gnu99 -O2 -Wall $(IPATH) 
@@ -21,17 +20,19 @@ else
 MYFLAGS := -std=gnu99 -O2 -Wall -Wl,-E $(IPATH) 
 endif
 
-LIBS= -llua $(LPATH) -ldl -lm
 HEADER = $(wildcard src/*.h)
 SRCS= $(wildcard src/*.c)
+LIBS= -llua -ldl -lm
 ifeq ($(PLAT), mingw)
 BINROOT= vscext/bin/windows
 PROG= $(BINROOT)/skynetda.exe
 LUAT=lua_dll
+LIBS += -L.
 else
 BINROOT= vscext/bin/$(PLAT)
 PROG= $(BINROOT)/skynetda
 LUAT=lua
+LIBS += -L$(LUA_SRC_DIR)
 endif
 
 all: $(LUAT) cjson $(PROG)
