@@ -51,11 +51,13 @@ $(PROG): $(SRCS) $(HEADER)
 	$(CC) $(MYFLAGS) -o $@ $(SRCS) $(LIBS)
 
 clean:
-	rm -f $(PROG)
+	rm -f vscext/bin/{linux,macosx}/skynetda
+	rm -f vscext/bin/windows/skynetda.exe
 
 cleanall: clean
 	$(MAKE) -C 3rd/lua clean
 	$(MAKE) -C 3rd/lua-cjson clean
-	rm -f $(PROG)
-	rm -f $(BINROOT)/*.dll
-	rm -f $(BINROOT)/*.so
+	rm -f vscext/bin/{linux,macosx}/skynetda
+	rm -f vscext/bin/windows/skynetda.exe
+	rm -f vscext/bin/{linux,macosx}/*.so
+	rm -f vscext/bin/windows/*.so	
