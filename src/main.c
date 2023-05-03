@@ -137,7 +137,8 @@ static void spawn_child(const char *skynet, const char *config) {
 static void spawn_child(const char *skynet, const char *config) {
     STARTUPINFO startup;
     PROCESS_INFORMATION info;
-    startup.cb = sizeof(startup);
+    memset((void *)&startup, 0, sizeof(STARTUPINFO));
+    startup.cb = sizeof(STARTUPINFO);
     startup.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     startup.wShowWindow = SW_HIDE;
     char cmdline[PATH_MAX*2 + 1] = { 0 };
@@ -171,6 +172,14 @@ int main(int argc, char const *argv[]) {
         change_workdir(argv[0]);
     if (!init_debuglog())
         error_exit("debug log failed");
+
+#ifdef _WIN_PLATFORM
+    put_env("vscdbg_platform", "windows");
+#elif defined(__APPLE__)
+    put_env("vscdbg_platform", "osx");
+#else
+    put_env("vscdbg_platform", "linux");
+#endif
 
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);

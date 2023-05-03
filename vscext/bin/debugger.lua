@@ -1,5 +1,3 @@
-local platform = ...
-
 local cjson = require "cjson"
 cjson.encode_empty_table_as_array(true)
 local vscaux = require "vscaux"
@@ -96,7 +94,7 @@ local function parse_file_envs(cwd, env_file, env_prefix)
         return
     end
 
-    local winos = platform == "windows"
+    local winos = os.getenv("vscdbg_platform") == "windows"
 
     if not is_abspath(env_file) then
         env_file = cwd .. (winos and "\\" or "/") .. env_file
@@ -113,9 +111,9 @@ local function parse_file_envs(cwd, env_file, env_prefix)
     end
     
     local reg_list = {
-        "^("..env_prefix.."[%w_]+)=\"(.-)\"$",
-        "^export[%s]+("..env_prefix.."[%w_]+)=\"(.-)\"$",
-        "^declare -x[%s]+("..env_prefix.."[%w_]+)=\"(.-)\"$",
+        "^("..env_prefix.."[%w_]+)=\"?(.-)\"?$",
+        "^export[%s]+("..env_prefix.."[%w_]+)=\"?(.-)\"?$",
+        "^declare -x[%s]+("..env_prefix.."[%w_]+)=\"?(.-)\"?$",
     }
 
     while true do

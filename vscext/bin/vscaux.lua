@@ -6,12 +6,15 @@ local cjson = require "cjson"
 local vscaux = {}
 local seq = 0
 
+local newline1 = os.getenv("vscdbg_platform") == "windows" and "\n" or "\r\n" --I don't know why it's right here either(windows use \n and linux use \r\n :).
+local newline2 = newline1..newline1
+
 -- 发送消息
 function vscaux.send(msg)
     local output = io.stdout
     local ok, content = pcall(cjson.encode, msg)
     if ok then
-        local data = string.format("Content-Length: %s\r\n\r\n%s\n", #content, content)
+        local data = string.format("Content-Length: %s%s%s\n", #content, newline2, content)
         if output:write(data) then
             output:flush()
             return true
