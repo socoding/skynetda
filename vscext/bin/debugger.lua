@@ -96,15 +96,15 @@ local function parse_file_envs(cwd, env_file, env_prefix)
 
     local winos = os.getenv("vscdbg_platform") == "windows"
 
-    if not is_abspath(env_file) then
-        env_file = cwd .. (winos and "\\" or "/") .. env_file
-    end
+    -- if not is_abspath(env_file) then
+    --     env_file = cwd .. (winos and "\\" or "/") .. env_file
+    -- end
 
     local file, errmsg
     if winos then
-        file, errmsg = io.popen("@echo off & call " .. env_file .. " & set", 'r')
+        file, errmsg = io.popen("@echo off & cd " .. cwd .. " & call " .. env_file .. " & set", 'r')
     else
-        file, errmsg = io.popen("source " .. env_file .. "; export", 'r')
+        file, errmsg = io.popen("cd " .. cwd .. "; source " .. env_file .. "; export", 'r')
     end
     if file == nil then
         error(errmsg)
