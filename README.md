@@ -16,7 +16,7 @@ Skynet 调试器
 
 ```json
 {
-	"name": "skynet debugger",
+	"name": "skynet debug",
 	"type": "lua",
 	"request": "launch",
 	"workdir": "${workspaceFolder}",
@@ -70,9 +70,9 @@ cpath = root.."cservice/?.so"
 
 如果F5之后没有成功调试，你可以CD到插件目录，比如：
 
-- `~/.vscode-server/extensions/socoding.skynet-debugger-x.x.x/bin/linux/` 或
-- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/macosx/`或
-- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/windows/`
+- `~/.vscode-server/extensions/socoding.skynet-debug-x.x.x/bin/linux/` 或
+- `~/.vscode/extensions/socoding.skynet-debug-x.x.x/bin/macosx/`或
+- `~/.vscode/extensions/socoding.skynet-debug-x.x.x/bin/windows/`
 
 里面有一个debug.log文件，查看里面的文件，查找错误原因。
 

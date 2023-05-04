@@ -1,7 +1,7 @@
 {
-	"name": "skynet-debugger",
+	"name": "skynet-debug",
 	"displayName": "Skynet Debug",
-	"description": "A Lua debugger for skynet",
+	"description": "A Lua debug extension for skynet",
 	"version": "2.0.0",
 	"publisher": "socoding",
 	"author": {
@@ -58,7 +58,7 @@
 		"debuggers": [
 			{
 				"type": "lua",
-				"label": "skynet debugger",
+				"label": "skynet debug",
 				"languages": [
 					"lua"
 				],
@@ -73,7 +73,7 @@
 				},
 				"initialConfigurations": [
 					{
-						"name": "skynet debugger",
+						"name": "skynet debug",
 						"type": "lua",
 						"request": "launch",
 						"workdir": "${workspaceFolder}",
