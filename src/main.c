@@ -98,14 +98,7 @@ static void init_lua_path(lua_State *dL) {
 
 static bool run_script(lua_State *L) {
     if (luaL_loadfile(L, "../debugger.lua") == LUA_OK) {
-#ifdef _WIN_PLATFORM
-        lua_pushstring(L, "windows");
-#elif defined(__APPLE__)
-        lua_pushstring(L, "osx");
-#else
-        lua_pushstring(L, "linux");
-#endif
-        if (lua_pcall(L, 1, -1, 0) == LUA_OK) {
+        if (lua_pcall(L, 0, -1, 0) == LUA_OK) {
             return true;
         }
     }
