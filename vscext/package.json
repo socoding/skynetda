@@ -1,8 +1,8 @@
 {
 	"name": "skynet-debugger",
-	"displayName": "Skynet Debugger",
+	"displayName": "Skynet Debug",
 	"description": "A Lua debugger for skynet",
-	"version": "1.0.1",
+	"version": "2.0.0",
 	"publisher": "socoding",
 	"author": {
 		"name": "socoding",
@@ -33,6 +33,7 @@
 		"onDebug"
 	],
 	"keywords": [
+		"debug",
 		"debugger",
 		"lua",
 		"skynet"

@@ -8,7 +8,7 @@ Skynet 调试器
 
 ## 安装扩展
 
-在VSCode的`Extensions`面板中搜索`Skynet Debugger`安装这个插件。
+在VSCode的`Extensions`面板中搜索`Skynet Debug`安装这个插件。
 
 ## 配置launch.json
 
