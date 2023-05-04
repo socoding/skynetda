@@ -40,7 +40,7 @@ end
 
 function reqfuncs.setBreakpoints(req)
     local args = req.arguments
-    local src = args.source.path
+    local src = args.source.path:gsub("^(%l:\\)", string.upper)
     local bpinfos = {}
     local bps = {}
     for _, bp in ipairs(args.breakpoints) do
