@@ -1,7 +1,5 @@
 Skynet 调试器
 
-## 更新说明
-
 ## 构建skynet
 
 请使用以下skynet版本。skynet的windows版请参考[https://github.com/firedtoad/skynet-mingw](https://github.com/firedtoad/skynet-mingw) 。同时需要解决io.stdin的select问题方可使用该调试插件。
