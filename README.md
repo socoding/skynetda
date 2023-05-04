@@ -1,30 +1,16 @@
-这是一个 VSCode 的调试插件，用于调试`Skynet`中的Lua程序。
+Skynet 调试器
 
 ## 更新说明
 
-最新版的插件增加了工作目录(workdir)的设置，需要配合最新的skynet版本，请看下面的详细说明。
-
 ## 构建skynet
 
-要想支持调试功能，你必须使用这个skynet版本：
+请使用以下skynet版本。skynet的windows版请参考https://github.com/firedtoad/skynet-mingw，需要解决io.stdin的select问题方可使用该调试插件。
 
 [https://github.com/socoding/skynet](https://github.com/socoding/skynet)
 
 ## 安装扩展
 
-接下来在VSCode的`Extensions`面板中搜索`Skynet Debugger`安装这个插件，**该插件不支持Windows，如果你在Windows下工作，那么可以通过VSCode的[Remote SSH](https://code.visualstudio.com/docs/remote/ssh)打开远程服务器上的skynet工程，然后再安装`Skynet Debugger`，此时插件会安装在服务器上，这样就可以在Windows下编辑和调试服务器上的skynet工程。**
-
-插件的发布版只包含了在`Debian GNU/Linux 10 (buster)`和`macOS 10.15.2(Catalina)`下编译的可执行程序，在这两个系统中应该是可以运行起来的。
-
-其他平台先试试是否可以调试，如果不能则需要自己重新构建插件的执行程序：
-
-- 克隆代码：`git clone https://github.com/socoding/skynetda.git`
-- 构建：`cd skynetda; make linux`
-- 完成之后在`vscext/bin/linux`中有`skynetda`和`cjson.so`两个文件,需要将这两个文件拷贝到插件的安装目录去：
-    - 如果是SSH远程服务器，插件目录应该在：`~/.vscode-server/extensions/socoding.skynet-debugger-x.x.x/bin/linux/`
-    - 如果是本地Linux，则应该在：`~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/linux/`
-	- 如果是MacOS，则应该是：`~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/macosx/`
-    - 上面的x.x.x替换为具体的版本号
+在VSCode的`Extensions`面板中搜索`Skynet Debugger`安装这个插件。
 
 ## 配置launch.json
 
@@ -38,14 +24,20 @@
 	"workdir": "${workspaceFolder}",
 	"program": "./skynet",
 	"config": "./examples/config_vsc",
-	"service": "./service"
+    "service": "./service;./preinit",
+    "envFile": "./env_game.sh",
+    "fileEnvPrefix": "game_",
+    "envs": [],
 }
 ```
 
-- `workdir` 是当前的工作目录，默认为 VSCode 打开的这个目录；这个目录就是程序运行起来的工作目录。
-- `program` 是skynet可执行程序的路径，相对于workdir；也可以用绝对路径。注意是可执行文件的路径，不是目录；这和旧版本的含义不同。
-- `config` 是skynet运行的配置文件，相对于workdir；也可以用绝对路径。
-- `service` 是skynet内部服务的路径，相对于workdir，配置这个是为了过滤掉skynet内部服务的调试。
+- `workdir` 程序工作目录，默认为 VSCode 打开的这个目录。
+- `program` skynet可执行程序路径，相对于workdir；也可以用绝对路径。
+- `config`  skynet运行的配置文件，相对于workdir；也可以用绝对路径。
+- `service` 禁用调试的服务路径，相对于workdir。
+- `envFile` 自定义环境变量的文件路径，相对于workdir；也可以用绝对路径。
+- `fileEnvPrefix` 自定义环境变量的前缀规则，仅对envFile中的环境变量生效。
+- `envs` 自定义环境变量，不受fileEnvPrefix影响。
 
 config_vsc文件的内容如下：
 
@@ -78,13 +70,11 @@ cpath = root.."cservice/?.so"
 
 ![sn1.png](vscext/images/sn1.png)
 
-该插件只能调试外部写的服务，`skynet/sevice` 目录中的服务不可调试。
-
 如果F5之后没有成功调试，你可以CD到插件目录，比如：
 
 - `~/.vscode-server/extensions/socoding.skynet-debugger-x.x.x/bin/linux/` 或
-- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/linux/`或
-- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/macosx/`
+- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/macosx/`或
+- `~/.vscode/extensions/socoding.skynet-debugger-x.x.x/bin/windows/`
 
 里面有一个debug.log文件，查看里面的文件，查找错误原因。
 
@@ -92,7 +82,7 @@ cpath = root.."cservice/?.so"
 
 vscdebug实现了大多数常用的调试功能：
 
-- 它可以将skynet.error输出到`DEBUG CONSOLE`面板，点击日志还可跳转到相应的代码行；但是`print, io.stdout`就不行，调用这两个函数什么也不会输出。
+- 它可以将skynet.error输出到`DEBUG CONSOLE`面板，点击日志还可跳转到相应的代码行。
 - 除了可以设置普通断点外，还支持以下几种断点：
     - 条件断点：当表达式为true时停下来。
     - Hit Count断点：命中一定次数后停下来。
@@ -103,26 +93,3 @@ vscdebug实现了大多数常用的调试功能：
     - 通过`WATCH`面板增加监控的表达式。
     - 可在`DEBUG CONSOLE`底部输入表达式，该表达式会在当前栈帧环境中执行，并得到结果输出。
 - 支持`Step into`, `Step over`, `Step out`, `Continue`等调试命令。
-
-## vscdebug怎么工作
-
-编写skynet调试器的难点在于：skynet里面有很多个Lua虚拟机，并且这些虚拟机是在多个线程中运行的。要像原生调试器那样把整个程序冻住似乎有些难度，我最后决定像skynet的`DebugConsole`那样，让它在同一时刻只能调试Lua服务的一个协程，除了这个被调试的协程会停住，其他协程还是照常执行。所以断点命中后，看起来像是停下来了，其实它还在快速的处理消息。
-
-它的实现是这样的：当一个协程的调试Hook回调时，如果命中断点，那么Hook函数会调用lua_yield停掉这个协程；接下来就可以对这个协程进行各种”观察”。此后执行`单步调试`，会使该协程执行一行后又被yield，如此重复，直到执行`继续`命令。
-
-由于Lua服务的主协程不能yield，所以主协程不可以调试。但这个限制没什么大问题，因为skynet的主协程主要用于派发消息，具体的消息处理都在其他协程完成的。
-
-在开发过程中，我发现了Lua的一个BUG，就是被Hook函数调用lua_yield的协程，它的CallInfo的savedpc会往前退一条指令，这就导致那一层的行数和局部变量不正确，修正方法是在`ldebug.c`：
-
-```c
-static int currentpc (CallInfo *ci) {
-  lua_assert(isLua(ci));
-  // 如果处于CIST_HOOKYIELD状态，应该加1。
-  const Instruction *pc = (ci->callstatus & CIST_HOOKYIELD) ? ci->u.l.savedpc + 1 : ci->u.l.savedpc;
-  return pcRel(pc, ci_func(ci)->p);
-}
-```
-
-修改后问题解决了，这也是唯一修改过的底层代码。
-
-Enjoy!!!
