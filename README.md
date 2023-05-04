@@ -24,10 +24,10 @@ Skynet 调试器
 	"workdir": "${workspaceFolder}",
 	"program": "./skynet",
 	"config": "./examples/config_vsc",
-    "service": "./service;./preinit",
-    "envFile": "./env_game.sh",
-    "fileEnvPrefix": "game_",
-    "envs": [],
+	"service": "./service;./preinit",
+	"envFile": "./env_game.sh",
+	"fileEnvPrefix": "game_",
+	"envs": [],
 }
 ```
 
