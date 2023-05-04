@@ -155,6 +155,8 @@ function reqfuncs.launch(req)
     parse_file_envs(workdir, req.arguments.envFile, req.arguments.fileEnvPrefix)
     parse_user_envs(req.arguments.envs)
 
+    vscaux.send_response(req.command, req.seq)
+
     return true
 end
 

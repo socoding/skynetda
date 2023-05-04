@@ -132,7 +132,6 @@ static void spawn_child(const char *skynet, const char *config) {
     PROCESS_INFORMATION info;
     memset((void *)&startup, 0, sizeof(STARTUPINFO));
     startup.cb = sizeof(STARTUPINFO);
-    startup.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     startup.wShowWindow = SW_HIDE;
     char cmdline[PATH_MAX*2 + 1] = { 0 };
     sprintf(cmdline, "%s %s", skynet, config);
