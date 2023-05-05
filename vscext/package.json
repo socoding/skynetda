@@ -2,7 +2,7 @@
 	"name": "skynet-debug",
 	"displayName": "Skynet Debug",
 	"description": "A Lua debug extension for skynet",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"publisher": "socoding",
 	"author": {
 		"name": "socoding",
